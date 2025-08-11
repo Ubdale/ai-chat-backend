@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const serverless = require('serverless-http');
 
 const app = express();
 
@@ -20,7 +21,6 @@ app.use(cors({
   }
 }));
 
-
 app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
@@ -31,10 +31,9 @@ async function generateResponse(prompt) {
   return data;
 }
 
-// API route
 app.post('/chat', async (req, res) => {
   try {
-    let message = req.body.message;
+    const message = req.body.message;
     const data = await generateResponse(message);
     res.send({
       user: 'Bot',
@@ -47,3 +46,4 @@ app.post('/chat', async (req, res) => {
 });
 
 module.exports = app;
+module.exports.handler = serverless(app); // 👈 Important for Vercel
