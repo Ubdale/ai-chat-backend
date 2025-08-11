@@ -3,12 +3,12 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const cors = require('cors');
-// app.use(cors({
-//   origin: 'https://your-frontend-domain.vercel.app',
-//   methods: ['GET','POST'],
-//   credentials: true
-// }));
-app.use(cors({ origin: '*' }));
+app.use(cors({
+  origin: 'https://your-frontend-domain.vercel.app',
+  methods: ['GET','POST'],
+  credentials: true
+}));
+// app.use(cors({ origin: '*' }));
 app.use(express.json());
 const {GoogleGenerativeAI} = require('@google/generative-ai');
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
