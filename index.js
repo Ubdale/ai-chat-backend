@@ -5,12 +5,21 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 
-// Enable CORS for frontend domain
+const allowedOrigins = [
+  'https://ai-chat-frontend-beryl.vercel.app',
+  'https://ai-chat-frontend-oqrqpbdhg-ubdales-projects-04a6989b.vercel.app'
+];
+
 app.use(cors({
-  origin: 'https://ai-chat-frontend-beryl.vercel.app',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
 }));
+
 
 app.use(express.json());
 
