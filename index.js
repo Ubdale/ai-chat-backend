@@ -7,12 +7,24 @@ const app = express();
 
 const allowedOrigins = [
   'https://ai-chat-frontend-beryl.vercel.app',
-  'https://ai-chat-frontend-oqrqpbdhg-ubdales-projects-04a6989b.vercel.app'
 ];
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  // Allow all Vercel preview URLs for this project
+  const vercelPreviewSuffix = '-ubdales-projects-04a6989b.vercel.app';
+  if (origin.startsWith('https://') && origin.endsWith(vercelPreviewSuffix)) {
+    // Optionally also ensure subdomain begins with expected app name
+    const host = origin.replace('https://', '');
+    if (host.startsWith('ai-chat-frontend-')) return true;
+  }
+  return false;
+}
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
