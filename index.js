@@ -1,33 +1,40 @@
 const express = require('express');
-const app = express();
 const cors = require('cors');
 require('dotenv').config();
-const cors = require('cors');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+const app = express();
+
+// Enable CORS for frontend domain
 app.use(cors({
-  origin: 'https://your-frontend-domain.vercel.app',
-  methods: ['GET','POST'],
-  credentials: true
+  origin: 'https://ai-chat-frontend-beryl.vercel.app',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
 }));
-// app.use(cors({ origin: '*' }));
+
 app.use(express.json());
-const {GoogleGenerativeAI} = require('@google/generative-ai');
+
 const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+
 async function generateResponse(prompt) {
-
-  const model =  await genAI.getGenerativeModel({
-     model: "gemini-2.5-flash",
-  })
-  const data = await model.generateContent(prompt)
+  const model = await genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const data = await model.generateContent(prompt);
   return data;
-  }
+}
 
-app.post('', (req,res)=>{
-  
-  let message = req.body.message;
-  generateResponse(message).then((data) => {
-    res.send({user: 'Bot', message: data.response.candidates[0].content.parts[0].text
+// API route
+app.post('/chat', async (req, res) => {
+  try {
+    let message = req.body.message;
+    const data = await generateResponse(message);
+    res.send({
+      user: 'Bot',
+      message: data.response.candidates[0].content.parts[0].text
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Something went wrong' });
+  }
 });
-  })
-  // res.send({data: 'Hello from the backend!'});
-});
+
 module.exports = app;
