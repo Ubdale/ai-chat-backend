@@ -48,7 +48,7 @@ app.get('/', (req, res) => {
   res.status(200).send({ status: 'ok' });
 });
 
-app.post('/chat', async (req, res) => {
+app.post('/', async (req, res) => {
   try {
     const message = req.body.message;
     const data = await generateResponse(message);
