@@ -1,23 +1,33 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+
 // ----- CORS Configuration -----
 const allowedOrigins = [
   'https://ai-chat-frontend-beryl.vercel.app',
+  'http://localhost:3000' // For local development
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('❌ Blocked by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+    
+    // Allow Vercel preview URLs
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+    
+    console.log('❌ Blocked by CORS:', origin);
+    callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: [
@@ -27,65 +37,83 @@ const corsOptions = {
     'Origin',
     'X-Requested-With'
   ],
+  credentials: true, // Enable if you need to handle cookies/auth
   optionsSuccessStatus: 204
 };
 
-// Apply CORS middleware globally
+// Apply middleware in correct order
+app.use(express.json());
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Handle all OPTIONS preflight requests
-app.use(bodyParser.urlencoded({extended: false}));
-// Parse JSON bodies
-app.use(express.json());
+
+// Static files and Angular routing
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-// Force CORS headers for ALL requests (extra safety)
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://ai-chat-frontend-beryl.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ----- Google Generative AI -----
 async function getGenAI() {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error('Missing API_KEY environment var');
+    throw new Error('Missing API_KEY environment variable');
   }
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   return new GoogleGenerativeAI(apiKey);
 }
 
 async function generateResponse(prompt) {
-  const genAI = await getGenAI();
-  const model = await genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-  const data = await model.generateContent(prompt);
-  return data;
+  try {
+    const genAI = await getGenAI();
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text();
+  } catch (err) {
+    console.error('Error in generateResponse:', err);
+    throw err;
+  }
 }
 
 // ----- Routes -----
-app.get('/', (req, res) => {
-  res.status(200).send({ status: 'ok' });
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date() });
 });
 
 app.post('/chat', async (req, res) => {
   try {
-    const message = req.body.message;
-    const data = await generateResponse(message);
-    res.send({
+    const { message } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    const responseText = await generateResponse(message);
+    res.json({
       user: 'Bot',
-      message: data.response.candidates[0].content.parts[0].text
+      message: responseText,
+      timestamp: new Date()
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).send({ error: 'Something went wrong, try again' });
+    console.error('Error in /chat endpoint:', err);
+    res.status(500).json({ 
+      error: 'Failed to generate response',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 });
 
-// ✅ Export Express app for Vercel serverless
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Start server (only when not in Vercel environment)
+if (process.env.VERCEL !== '1') {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
+
+// Export for Vercel serverless
 module.exports = app;
