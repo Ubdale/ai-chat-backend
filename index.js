@@ -1,41 +1,43 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-// Use dynamic import for ESM-only Google Generative AI SDK inside request scope
 
 const app = express();
 
+// ----- CORS Configuration -----
 const allowedOrigins = [
   'https://ai-chat-frontend-beryl.vercel.app',
 ];
 
-function isAllowedOrigin(origin) {
-  if (!origin) return true;
-  if (allowedOrigins.includes(origin)) return true;
-  // Allow all Vercel preview URLs for this project
-  const vercelPreviewSuffix = '-ubdales-projects-04a6989b.vercel.app';
-  if (origin.startsWith('https://') && origin.endsWith(vercelPreviewSuffix)) {
-    // Optionally also ensure subdomain begins with expected app name
-    const host = origin.replace('https://', '');
-    if (host.startsWith('ai-chat-frontend-')) return true;
-  }
-  return false;
-}
-
 const corsOptions = {
   origin: function (origin, callback) {
-    if (isAllowedOrigin(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('❌ Blocked by CORS:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Origin',
+    'X-Requested-With'
+  ],
   optionsSuccessStatus: 204
 };
 
-// app.use(cors(corsOptions));
+// Apply CORS middleware globally
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Handle all OPTIONS preflight requests
+
+// Parse JSON bodies
+app.use(express.json());
+
+// Force CORS headers for ALL requests (extra safety)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://ai-chat-frontend-beryl.vercel.app');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -46,9 +48,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.options('*', cors(corsOptions));
-app.use(express.json());
-
+// ----- Google Generative AI -----
 async function getGenAI() {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
@@ -65,7 +65,7 @@ async function generateResponse(prompt) {
   return data;
 }
 
-// Health check (useful to verify CORS headers on a simple GET)
+// ----- Routes -----
 app.get('/', (req, res) => {
   res.status(200).send({ status: 'ok' });
 });
@@ -80,9 +80,9 @@ app.post('/chat', async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send({ error: 'Something went Try again' });
+    res.status(500).send({ error: 'Something went wrong, try again' });
   }
 });
 
-// Export a request handler so Vercel invokes Express correctly
-module.exports = (req, res) => app(req, res);
+// ✅ Export Express app for Vercel serverless
+module.exports = app;
