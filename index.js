@@ -55,7 +55,7 @@ app.use((req, res, next) => {
 async function getGenAI() {
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error('Missing API_KEY environment variable');
+    throw new Error('Missing API_KEY environment var');
   }
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   return new GoogleGenerativeAI(apiKey);
