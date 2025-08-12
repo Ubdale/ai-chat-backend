@@ -6,19 +6,24 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/chat",
-      "dest": "index.js",
-      "methods": ["POST", "OPTIONS"]
-    },
-    {
-      "src": "/",
-      "dest": "index.js",
-      "methods": ["GET"]
-    }
-  ],
   "headers": [
+    {
+      "source": "/chat",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://ai-chat-frontend-beryl.vercel.app"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Requested-With"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -28,17 +33,19 @@
         },
         {
           "key": "Access-Control-Allow-Methods",
-          "value": "GET,POST,OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
-        },
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
+          "value": "GET, OPTIONS"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/chat",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }
