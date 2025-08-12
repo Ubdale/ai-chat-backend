@@ -1,9 +1,44 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.js", "use": "@vercel/node" }
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "index.js" }
+    {
+      "src": "/chat",
+      "dest": "index.js",
+      "methods": ["POST", "OPTIONS"]
+    },
+    {
+      "src": "/",
+      "dest": "index.js",
+      "methods": ["GET"]
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://ai-chat-frontend-beryl.vercel.app"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,POST,OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Requested-With"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        }
+      ]
+    }
   ]
 }
