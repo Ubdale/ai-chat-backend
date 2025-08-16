@@ -75,12 +75,7 @@ async function generateResponse(prompt) {
   }
 }
 
-// ----- Routes -----
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', timestamp: new Date() });
-});
-
-app.post('/chat', async (req, res) => {
+app.post('/https://ai-chat-backend-eta.vercel.app', async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) {
