@@ -12,33 +12,33 @@
       'http://localhost:3000' // Local dev
     ];
 
-    const corsOptions = {
-      origin: function (origin, callback) {
-        if (!origin) return callback(null, true); // allow curl / mobile apps
+    // const corsOptions = {
+    //   origin: function (origin, callback) {
+    //     if (!origin) return callback(null, true); // allow curl / mobile apps
 
-        if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
-          return callback(null, true);
-        }
+    //     if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    //       return callback(null, true);
+    //     }
 
-        console.log('❌ Blocked by CORS:', origin);
-        return callback(new Error('Not allowed by CORS'));
-      },
-      methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: [
-        'Content-Type',
-        'Authorization',
-        'Accept',
-        'Origin',
-        'X-Requested-With'
-      ],
-      credentials: true,
-      optionsSuccessStatus: 204
-    };
+    //     console.log('❌ Blocked by CORS:', origin);
+    //     return callback(new Error('Not allowed by CORS'));
+    //   },
+    //   methods: ['GET', 'POST', 'OPTIONS'],
+    //   allowedHeaders: [
+    //     'Content-Type',
+    //     'Authorization',
+    //     'Accept',
+    //     'Origin',
+    //     'X-Requested-With'
+    //   ],
+    //   credentials: true,
+    //   optionsSuccessStatus: 204
+    // };
 
     // Apply middleware in correct order
     app.use(express.json());
-    app.use(cors(corsOptions));
-    app.options('*', cors(corsOptions)); // Preflight requests
+    app.use(cors());
+   
 
     // Static files (for frontend hosting if needed)
     // app.use(express.static(path.join(__dirname, 'public')));
