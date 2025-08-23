@@ -6,12 +6,6 @@
     const app = express();
     const port = process.env.PORT || 3000;
 
-    // ----- CORS Configuration -----
-const allowedOrigins = [
-  "https://ai-chat-frontend-beryl.vercel.app",
-  "https://ai-chat-frontend-gamma.vercel.app", // ✅ Add your gamma frontend here
-  "http://localhost:4200" // for local dev (optional)
-];
 
     // const corsOptions = {
     //   origin: function (origin, callback) {
@@ -38,23 +32,8 @@ const allowedOrigins = [
 
     // Apply middleware in correct order
     app.use(express.json());
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow mobile / curl
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
-    credentials: true,
-  })
-);
-
-    // Static files (for frontend hosting if needed)
-    // app.use(express.static(path.join(__dirname, 'public')));
+    app.use(cors());
+   
   app.get('/', (req, res) => {
     // res.sendFile(path.join(__dirname, 'public', 'index.html'));
     res.send('Hello World!');
