@@ -37,8 +37,11 @@
 
     // Apply middleware in correct order
     app.use(express.json());
-    app.use(cors());
-   
+app.use(cors({
+  origin: ["https://my-frontend.vercel.app"],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
 
     // Static files (for frontend hosting if needed)
     // app.use(express.static(path.join(__dirname, 'public')));
