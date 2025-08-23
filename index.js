@@ -7,10 +7,11 @@
     const port = process.env.PORT || 3000;
 
     // ----- CORS Configuration -----
-    const allowedOrigins = [
-      'https://ai-chat-frontend-beryl.vercel.app',
-      'http://localhost:3000' // Local dev
-    ];
+const allowedOrigins = [
+  "https://ai-chat-frontend-beryl.vercel.app",
+  "https://ai-chat-frontend-gamma.vercel.app", // ✅ Add your gamma frontend here
+  "http://localhost:4200" // for local dev (optional)
+];
 
     // const corsOptions = {
     //   origin: function (origin, callback) {
@@ -37,11 +38,20 @@
 
     // Apply middleware in correct order
     app.use(express.json());
-app.use(cors({
-  origin: ["https://my-frontend.vercel.app"],
-  methods: ["GET", "POST"],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow mobile / curl
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
+    credentials: true,
+  })
+);
 
     // Static files (for frontend hosting if needed)
     // app.use(express.static(path.join(__dirname, 'public')));
