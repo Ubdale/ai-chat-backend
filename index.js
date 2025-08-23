@@ -63,6 +63,8 @@
         const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
         const result = await model.generateContent(prompt);
         const response = await result.response;
+        console.log(response);
+        
         return response.text();
       } catch (err) {
         console.error('Error in generateResponse:', err);
@@ -70,7 +72,7 @@
       }
     }
 
-    app.post('chat', async (req, res) => {
+    app.post('/chat', async (req, res) => {
       try {
         const { message } = req.body;
         if (!message) {
